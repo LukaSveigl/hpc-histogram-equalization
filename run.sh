@@ -6,8 +6,8 @@
 #SBATCH --gpus=1
 #SBATCH --output=hist-eq.log
 
-FILE=src/sample
+FILE=src/hist-eq-serial
 
 module load CUDA
 nvcc  -diag-suppress 550 -O2 -lm $FILE.cu -o $FILE
-srun  $FILE valve.png valve_out.png
+srun  $FILE data/input/valve.png data/output/seq/valve_out.png
