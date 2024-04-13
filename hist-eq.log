@@ -1,2 +1,12 @@
-Loaded image data/input/valve.png of size 600x450.
-Kernel Execution time is: 4.881 milliseconds 
+src/hist-eq-parallel-up.cu(118): warning #20044-D: extern declaration of the entity partial_histogram is treated as a static definition
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+src/hist-eq-parallel-up.cu(149): warning #20044-D: extern declaration of the entity scan is treated as a static definition
+
+Loaded image data/input/7680x4320.png of size 7680x4320.
+Histogram Computation time is: 6.201 milliseconds 
+CDF Computation time is: 0.024 milliseconds 
+CDF Min Computation time is: 0.038 milliseconds 
+Equalization Computation time is: 1.720 milliseconds 
+Kernel Execution time is: 8.017 milliseconds 

@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string>
+#include <iostream>
 
 #include <cuda_runtime.h>
 #include <cuda.h>
@@ -12,7 +14,7 @@
 #include "lib/stb_image_write.h"
 
 #define COLOR_CHANNELS 0
-#define GRAYLEVELS 256
+#define COLORLEVELS 256
 
 struct {
     size_t width;
@@ -55,7 +57,7 @@ size_t index(size_t x, size_t y, int channel, int width, int channels) {
  */
 uint32_t cdf_find_min(uint32_t *cdf) {
     uint32_t min = 0;
-    for (size_t i = 0; i < GRAYLEVELS; i++) {
+    for (size_t i = 0; i < COLORLEVELS; i++) {
         if (cdf[i] != 0) {
             min = cdf[i];
             break;
@@ -65,7 +67,7 @@ uint32_t cdf_find_min(uint32_t *cdf) {
 }
 
 /**
- * @brief Calculates the new pixel intensity using the equation: floor(((cdf - cdf_min) * (GRAYLEVELS - 1)) / (total_pixels - cdf_min)).
+ * @brief Calculates the new pixel intensity using the equation: floor(((cdf - cdf_min) * (COLORLEVELS - 1)) / (total_pixels - cdf_min)).
  * 
  * @param cdf The cumulative distribution function.
  * @param cdf_min The non-zero minimum in the cumulative distribution function.
@@ -73,7 +75,7 @@ uint32_t cdf_find_min(uint32_t *cdf) {
  * @return uint8_t The new pixel intensity.
  */
 uint8_t calculate_pixel_intensity(uint32_t cdf, uint32_t cdf_min, uint32_t total_pixels) {
-    return (uint8_t)(((cdf - cdf_min) * (GRAYLEVELS - 1)) / (total_pixels - cdf_min));
+    return (uint8_t)(((cdf - cdf_min) * (COLORLEVELS - 1)) / (total_pixels - cdf_min));
 }
 
 /**
@@ -87,7 +89,7 @@ uint8_t calculate_pixel_intensity(uint32_t cdf, uint32_t cdf_min, uint32_t total
  */
 void compute_histogram(uint8_t *image, uint32_t *histogram, size_t width, size_t height, size_t color_channel) {
     // Empty the histogram.
-    for (size_t i = 0; i < GRAYLEVELS; i++) {
+    for (size_t i = 0; i < COLORLEVELS; i++) {
         histogram[i] = 0;
     }
 
@@ -107,7 +109,7 @@ void compute_histogram(uint8_t *image, uint32_t *histogram, size_t width, size_t
  */
 void compute_cdf(uint32_t *histogram, uint32_t *cdf) {
     cdf[0] = histogram[0];
-    for (size_t i = 1; i < GRAYLEVELS; i++) {
+    for (size_t i = 1; i < COLORLEVELS; i++) {
         cdf[i] = cdf[i - 1] + histogram[i];
     }
 }
@@ -121,8 +123,8 @@ void compute_cdf(uint32_t *histogram, uint32_t *cdf) {
  * @param height The height of the image. 
  */
 void equalize_image(uint8_t *image_in, uint8_t *image_out, size_t width, size_t height) {
-    uint32_t *histogram = (uint32_t *)malloc(GRAYLEVELS * sizeof(uint32_t));
-    uint32_t *cdf = (uint32_t *)malloc(GRAYLEVELS * sizeof(uint32_t));
+    uint32_t *histogram = (uint32_t *)malloc(COLORLEVELS * sizeof(uint32_t));
+    uint32_t *cdf = (uint32_t *)malloc(COLORLEVELS * sizeof(uint32_t));
 
     for (size_t i = 0; i < image_data.channels; i++) {
         compute_histogram(image_in, histogram, width, height, i);
@@ -156,7 +158,9 @@ int main(int argc, char *argv[]) {
     image_data.height = height;
     image_data.channels = cpp;
 
-    check_and_print_error(h_imageIn != NULL, "Error reading loading image " + szImage_in_name + "!");
+    char error_message[300];
+    snprintf(error_message, 300, "Error reading loading image %s!", szImage_in_name);
+    check_and_print_error(h_imageIn != NULL, error_message);
 
     printf("Loaded image %s of size %dx%d.\n", szImage_in_name, width, height);
     const size_t datasize = width * height * cpp * sizeof(unsigned char);
